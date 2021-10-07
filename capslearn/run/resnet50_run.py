@@ -12,13 +12,18 @@ device = torch.device("cuda:0")
 
 batch_size = 128
 epochs = 1
-learning_rate = 0.1
+learning_rate = 0.01
 
 model = models.resnet50()
 
+normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                std=[0.229, 0.224, 0.225])
+
 transforms = transforms.Compose([
-                transforms.Resize((224, 224)),
+                transforms.RandomResizedCrop(224),
+                transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
+                normalize,
                 ])
 
 train_loader, test_loader = ld.get_loader(batch_size=batch_size,
@@ -27,7 +32,7 @@ train_loader, test_loader = ld.get_loader(batch_size=batch_size,
 
 model = model.to(device)
 criterion = torch.nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 optimizer = opt.CapsOptimizer(optimizer, unchange_rate=90.0)
 
 for epoch in range(epochs):
@@ -41,7 +46,8 @@ for epoch in range(epochs):
                 ) as prof:
             for idx, data in enumerate(iteration):
                 inputs, labels = data
-                inputs, labels = inputs.to(device), labels.to(device)
+                inputs = inputs.cuda(device, non_blocking=True)
+                labels = labels.cuda(device, non_blocking=True)
                 optimizer.zero_grad()
 
                 outputs = model(inputs)

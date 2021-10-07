@@ -16,7 +16,7 @@ def get_loader(batch_size=32, resize=224, data_dir="./data"):
     train_set = torchvision.datasets.CIFAR10(root=data_dir, train=True, download=True, transform=transform)
     test_set = torchvision.datasets.CIFAR10(root=data_dir, train=False, download=True, transform=transform)
 
-    train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
+    train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=True)
     test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=False)
 
     classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')

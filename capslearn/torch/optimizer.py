@@ -32,6 +32,8 @@ class _CapsOptimizer(torch.optim.Optimizer):
                 #
                 # TODO: determine concrete metric for check parameter change.
                 #       How many we can torelate floating point?
+                # TODO: implement more concrete and faster way to search tensor.
+                #
 
                 current_params = torch.round(self.params[0]['params'][idx].data * 10000)
                 previous = torch.round(self.prev_params[0]['params'][idx].data * 10000)
