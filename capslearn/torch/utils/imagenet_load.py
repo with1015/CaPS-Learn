@@ -13,14 +13,14 @@ def get_loader(batch_size=32, data_dir="./data", transforms=None):
     train_loader = DataLoader(imagenet_train,
                             batch_size=batch_size,
                             shuffle=True,
-                            num_workers=16,
+                            num_workers=8,
                             prefetch_factor=2,
                             pin_memory=True)
 
     test_loader = DataLoader(imagenet_test,
                             batch_size=batch_size,
                             shuffle=False,
-                            num_workers=16,
+                            num_workers=8,
                             prefetch_factor=2,
                             pin_memory=True)
 
