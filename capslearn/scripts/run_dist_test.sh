@@ -4,7 +4,7 @@ LOG_DIR=${HOME}/CaPS-Learn/capslearn/logs
 DATA_DIR=${HOME}/caPS-Learn/capslearn/data
 RUN_DIR=${HOME}/CaPS-Learn/capslearn/run
 
-APP="alexnet_run.py"
+APP="distribute_test.py"
 
 
 source ${RUN_DIR}/set-env.sh
