@@ -1,8 +1,8 @@
 #!/bin/bash
 
-LOG_DIR=${HOME}/capslearn/capslearn/logs
-DATA_DIR=${HOME}/capslearn/capslearn/data
-RUN_DIR=${HOME}/capslearn/capslearn/run
+LOG_DIR=${HOME}/CaPS-Learn/capslearn/logs
+DATA_DIR=${HOME}/CaPS-Learn/capslearn/data
+RUN_DIR=${HOME}/CaPS-Learn/capslearn/run
 
 APP="alexnet_dist.py"
 

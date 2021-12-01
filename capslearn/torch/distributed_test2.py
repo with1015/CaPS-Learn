@@ -36,11 +36,10 @@ class DistributedDataParallel(torch.nn.Module):
     def _sync_params(self):
         if self.process_group.size() == 1:
             return
-        with torch.no_grad():
-            if self.broadcast_buffers:
-                for param in self._tensor_list:
-                    param.requires_grad = False
-                    self._broadcast_parameters(param)
+        if self.broadcast_buffers:
+            for param in self._tensor_list:
+                self._broadcast_parameters(param.detach())
+                param.requires_grad_()
 
 
     def _broadcast_parameters(self, param):
