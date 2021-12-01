@@ -10,18 +10,20 @@ import torchvision.transforms as transforms
 
 import capslearn.models.alexnet as alexnet
 import capslearn.torch.optimizer as opt
-from capslearn.torch.distributed_test2 import DistributedDataParallel
+import capslearn.torch.distributed.DistributedDataParallel as DistributedDataParallel
+import capslearn.torch.utils.others as utility
 
 #import capslearn.torch.utils.cifar10_load as ld
 import capslearn.torch.utils.imagenet_load as ld
 
 from tqdm import tqdm
 
+args = utility.argument_parsing()
 cuda = torch.device("cuda:0")
 
-batch_size = 128
-epochs = 10
-learning_rate = 0.1
+batch_size = args.batch_size
+epochs = args.epochs
+learning_rate = args.learning_rate
 
 os.environ['MASTER_ADDR'] = 'dumbo049'
 os.environ['MASTER_PORT'] = '28000'
@@ -35,13 +37,13 @@ transforms = transforms.Compose([
                 ])
 
 train_loader, test_loader = ld.get_loader(batch_size=batch_size,
-                                        data_dir="/scratch/with1015/dataset",
+                                        data_dir=args.data,
                                         transforms=transforms)
 
 num_classes = 1000
 model = alexnet.AlexNet(num_classes=num_classes).to(device=cuda)
 
-rank = 0
+rank = args.rank
 dist.init_process_group(backend='gloo', rank=rank, world_size=2)
 model = DistributedDataParallel(model, device_ids=[0])
 

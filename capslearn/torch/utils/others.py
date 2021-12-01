@@ -6,6 +6,7 @@ import time
 def argument_parsing():
     parser = argparse.ArgumentParser(description='PyTorch Training with CaPS-Learning System.')
 
+    # Common arguments
     parser.add_argument('data', metavar='DIR',
                         help='path to dataset')
     parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
@@ -13,12 +14,7 @@ def argument_parsing():
     parser.add_argument('--epochs', default=90, type=int, metavar='N',
                         help='number of total epochs to run')
 
-    parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
-                        help='manual epoch number (useful on restarts)')
-    parser.add_argument('--num-minibatches', default=None, type=int,
-                        help="Number of minibatches to run")
-    parser.add_argument('--no-validate', dest='no_validate', action='store_true',
-                        help="No validation")
+    # Hyperparameters for training
     parser.add_argument('-b', '--batch-size', default=256, type=int,
                         metavar='N',
                         help='mini-batch size (default: 256), this is the total '
@@ -31,18 +27,14 @@ def argument_parsing():
     parser.add_argument('--wd', '--weight-decay', default=1e-4, type=float,
                         metavar='W', help='weight decay (default: 1e-4)',
                         dest='weight_decay')
-    parser.add_argument('-p', '--print-freq', default=10, type=int,
-                        metavar='N', help='print frequency (default: 10)')
-    parser.add_argument('--resume', default='', type=str, metavar='PATH',
-                        help='path to latest checkpoint (default: none)')
-    parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true',
-                        help='evaluate model on validation set')
-    parser.add_argument('--world-size', default=-1, type=int,
-                        help='number of nodes for distributed training')
-    parser.add_argument('--seed', default=None, type=int,
-                        help='seed for initializing training. ')
+
+    # Distributed training
     parser.add_argument('--gpu', default=None, type=int,
                         help='GPU id to use.')
+    parser.add_argument('--rank', default=None, type=int,
+                        help='Define DDP rank')
+    parser.add_argument('--world-size', default=1, type=int,
+                        help='Define world size for DDP')
 
     return parser.parse_args()
 
