@@ -33,7 +33,7 @@ class DistributedDataParallel(torch.nn.Module):
         self.modules_buffers = [list(self.module.buffers())]
         named_parameters = list(self.module.named_parameters())
         self._parameter_names = {v.__hash__(): k for k, v in sorted(named_parameters)}
-        self._tensor_list = [tensor for _, tensor in sorted(named_parameters]
+        self._tensor_list = [tensor for _, tensor in sorted(named_parameters)]
 
 
     def forward(self, *inputs, **kwargs):
