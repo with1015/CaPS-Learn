@@ -5,4 +5,5 @@
 ~~~
 torch == 1.9.0 (recommand)
 torchvision == 0.10.0 (recommand)
+tqdm == 4.60.0 (recommand)
 ~~~

@@ -15,15 +15,12 @@ def argument_parsing():
                         help='number of total epochs to run')
 
     # Hyperparameters for training
-    parser.add_argument('-b', '--batch-size', default=256, type=int,
-                        metavar='N',
-                        help='mini-batch size (default: 256), this is the total '
-                             'batch size of all GPUs on the current node when '
-                             'using Data Parallel or Distributed Data Parallel')
+    parser.add_argument('-b', '--batch-size', default=32, type=int,
+                        help='Batch size for local machine learning (default: 32)')
     parser.add_argument('--lr', '--learning-rate', default=0.1, type=float,
-                        metavar='LR', help='initial learning rate', dest='lr')
+                        help='initial learning rate', dest='lr')
     parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
-                        help='momentum')
+                        help='momentum (default: 0.9)')
     parser.add_argument('--wd', '--weight-decay', default=1e-4, type=float,
                         metavar='W', help='weight decay (default: 1e-4)',
                         dest='weight_decay')
@@ -35,6 +32,12 @@ def argument_parsing():
                         help='Define DDP rank')
     parser.add_argument('--world-size', default=1, type=int,
                         help='Define world size for DDP')
+
+    # CapsOptimizer option
+    parser.add_argument('--log-mode', default=False, type=bool,
+                        help='Enable log for CaPS optimizer')
+    parser.add_argument('--log-dir', default=None, type=str,
+                        help='Log directory of CaPS optimizer')
 
     return parser.parse_args()
 
