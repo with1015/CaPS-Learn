@@ -1,7 +1,7 @@
 #!/bin/bash
 
 LOG_DIR=${HOME}/CaPS-Learn/capslearn/logs
-DATA_DIR=${HOME}/scratch/with1015/datasets/cifar10
+DATA_DIR=/scratch/with1015/datasets/cifar10
 RUN_DIR=${HOME}/CaPS-Learn/capslearn/run
 
 APP="resnet50_run.py"

@@ -31,8 +31,9 @@ class _CapsOptimizer(torch.optim.Optimizer):
             if self.steps == 0:
                 for idx in range(self.num_tensors):
                     current_size = self.params[0]['params'][idx].data.size()
-                    with open(self.log_dir + "/layer" + str(idx) + ".log", "a") as f:
-                        f.write(str(current_size) + "\n")
+                    if self.log_mode == True:
+                        with open(self.log_dir + "/layer" + str(idx) + ".log", "a") as f:
+                            f.write(str(current_size) + "\n")
 
         if self.steps != 0:
             for idx in range(self.num_tensors):
