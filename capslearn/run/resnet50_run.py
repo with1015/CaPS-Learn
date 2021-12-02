@@ -23,8 +23,8 @@ learning_rate = args.lr
 rank = args.rank
 world_size = args.world_size
 
-os.environ['MASTER_ADDR'] = 'dumbo049'
-os.environ['MASTER_PORT'] = '28000'
+os.environ['MASTER_ADDR'] = args.master_addr
+os.environ['MASTER_PORT'] = args.master_port
 
 #normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
 #                                std=[0.229, 0.224, 0.225])
@@ -36,7 +36,8 @@ os.environ['MASTER_PORT'] = '28000'
 
 train_loader, test_loader, num_classes = ld.get_loader(batch_size=batch_size,
                                                     data_dir=args.data,
-                                                    resize=70)
+                                                    resize=70,
+                                                    num_workers=args.num_workers)
 
 model = models.resnet50(num_classes=num_classes)
 model = model.to(device)
@@ -46,10 +47,7 @@ model = DistributedDataParallel(model, device_ids=[0])
 
 criterion = torch.nn.CrossEntropyLoss().cuda()
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
-optimizer = opt.CapsOptimizer(optimizer, unchange_rate=90.0,
-                              log_mode=args.log_mode,
-                              log_dir=args.log_dir
-                             )
+optimizer = opt.CapsOptimizer(optimizer, unchange_rate=90.0)
 
 for epoch in range(epochs):
     print("Epoch: ", epoch)

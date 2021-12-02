@@ -32,9 +32,14 @@ def argument_parsing():
                         help='Define DDP rank')
     parser.add_argument('--world-size', default=1, type=int,
                         help='Define world size for DDP')
+    parser.add_argument('--master_addr', default='localhost', type=str,
+                        help='Define master address of DistributedDataParallel')
+    parser.add_argument('--master_port', default='28000', type=str,
+                        help='Define master port of DistributedDataParallel')
+
 
     # CapsOptimizer option
-    parser.add_argument('--log-mode', default=False, type=bool,
+    parser.add_argument('--log-mode', dest='log_mode', action='store_true',
                         help='Enable log for CaPS optimizer')
     parser.add_argument('--log-dir', default=None, type=str,
                         help='Log directory of CaPS optimizer')
