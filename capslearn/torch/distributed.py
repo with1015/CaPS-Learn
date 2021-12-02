@@ -33,8 +33,7 @@ class DistributedDataParallel(torch.nn.Module):
         self.modules_buffers = [list(self.module.buffers())]
         named_parameters = list(self.module.named_parameters())
         self._parameter_names = {v.__hash__(): k for k, v in sorted(named_parameters)}
-        self._tensor_list = [tensor for _, tensor in named_parameters]
-
+        self._tensor_list = [tensor for _, tensor in sorted(named_parameters]
 
 
     def forward(self, *inputs, **kwargs):
@@ -49,7 +48,7 @@ class DistributedDataParallel(torch.nn.Module):
         if self.broadcast_buffers:
             for param in self._tensor_list:
                 if param.requires_grad == False:
-                    group = self._create_new_group()
+                    group = self._create_new_group(ranks=[0,1])
                     self._reduce_parameters(param.detach(), group)
                 with torch.no_grad():
                     param /= self.world_size
