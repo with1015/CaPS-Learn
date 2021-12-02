@@ -25,6 +25,7 @@ class _CapsOptimizer(torch.optim.Optimizer):
 
         # unchange_rate scheduling
         self.adjust_rate = adjust_rate
+        self.scheduling_freq = scheduling_freq
         self.lower_bound = lower_bound
         self.metric_queue = deque(maxlen=history_length)
 
@@ -44,7 +45,7 @@ class _CapsOptimizer(torch.optim.Optimizer):
                             f.write(str(current_size) + "\n")
 
         if self.steps != 0:
-            if self.steps % scheduling_freq == 0:
+            if self.steps % self.scheduling_freq == 0:
                 bad_valid = self._check_validation()
                 self._schedule_unchange_rate(bad_valid)
 
@@ -101,7 +102,18 @@ class _CapsOptimizer(torch.optim.Optimizer):
             self.unchange_rate = self.unchange_rate + self.adjust_rate
 
 
-def CapsOptimizer(optimizer, unchange_rate=90.0, log_mode=False, log_dir=None):
+def CapsOptimizer(optimizer,
+                  unchange_rate=90.0, adjust_rate=1.0, lower_bound=60.0,
+                  scheduling_freq=1000, history_length=10,
+                  log_mode=False, log_dir=None):
+
     cls = type(optimizer.__class__.__name__, (optimizer.__class__,),
                 dict(_CapsOptimizer.__dict__))
-    return cls(optimizer.param_groups, unchange_rate=unchange_rate, log_mode=log_mode, log_dir=log_dir)
+
+    return cls(optimizer.param_groups,
+               unchange_rate=unchange_rate,
+               adjust_rate=adjust_rate,
+               lower_bound=lower_bound,
+               scheduling_freq=scheduling_freq,
+               history_length=history_length,
+               log_mode=log_mode, log_dir=log_dir)

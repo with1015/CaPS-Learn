@@ -23,10 +23,10 @@ class DistributedDataParallel(torch.nn.Module):
         # Communication initialize
         self.total_process_group = _get_default_group()
         self.group_list = []
-        self.rank = self.process_group.rank()
+        self.rank = self.total_process_group.rank()
         assert(self.total_process_group.size() > 0)
 
-        self.world_size = self.process_group.size()
+        self.world_size = self.total_process_group.size()
         self.temp_group = None
 
         # Leanring parameters initialize
@@ -48,8 +48,10 @@ class DistributedDataParallel(torch.nn.Module):
         if self.broadcast_buffers:
             for param in self._tensor_list:
                 if param.requires_grad == False:
-                    group = self._create_new_group(ranks=[0,1])
-                    self._reduce_parameters(param.detach(), group)
+                    #
+                    # TODO: Selective reduction protocol will be needed
+                    #
+                    self._reduce_parameters(param.detach())
                 with torch.no_grad():
                     param /= self.world_size
                 param.requires_grad_()
@@ -71,5 +73,5 @@ class DistributedDataParallel(torch.nn.Module):
 
 
     def _create_new_group(self, ranks=[]):
-        temp_group = new_group(ranks=ranks, backends='gloo')
+        temp_group = new_group(ranks=ranks, backend='gloo')
         return temp_group
