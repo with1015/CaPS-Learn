@@ -8,7 +8,7 @@ import torchvision.models as models
 
 import capslearn.torch.optimizer as opt
 import capslearn.torch.utils.cifar10_load as ld
-import capslearn.torch.distributed.DistributedDataParallel as DistributedDataParallel
+from capslearn.torch.distributed import DistributedDataParallel
 import capslearn.torch.utils.others as utility
 
 from tqdm import tqdm
@@ -18,7 +18,7 @@ device = torch.device("cuda:0")
 
 batch_size = args.batch_size
 epochs = args.epochs
-learning_rate = args.learning_rate
+learning_rate = args.lr
 
 rank = args.rank
 world_size = args.world_size

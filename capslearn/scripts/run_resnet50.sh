@@ -1,8 +1,8 @@
 #!/bin/bash
 
-LOG_DIR=${HOME}/CaPSLearn/capslearn/logs
-DATA_DIR=${HOME}/CaPSLearn/capslearn/data
-RUN_DIR=${HOME}/CaPSLearn/capslearn/run
+LOG_DIR=${HOME}/CaPS-Learn/capslearn/logs
+DATA_DIR=${HOME}/scratch/with1015/datasets/cifar10
+RUN_DIR=${HOME}/CaPS-Learn/capslearn/run
 
 APP="resnet50_run.py"
 
@@ -13,7 +13,7 @@ python3 ${RUN_DIR}/${APP} \
   --batch-size 32 \
   --lr 0.001 \
   --world-size 2 \
-  --rank 0
+  --rank 0 \
   --log-mode False \
   $DATA_DIR
 
