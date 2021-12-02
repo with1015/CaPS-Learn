@@ -7,7 +7,7 @@ class _CapsOptimizer(torch.optim.Optimizer):
 
     def __init__(self, params,
                  unchange_rate=99.0, adjust_rate=1.0, lower_bound=60.0,
-                 scheduling_freq=1000, history_length=10
+                 scheduling_freq=1000, history_length=10,
                  log_mode=False, log_dir=None):
 
         super(self.__class__, self).__init__(params)
