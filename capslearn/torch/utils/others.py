@@ -39,6 +39,14 @@ def argument_parsing():
 
 
     # CapsOptimizer option
+    parser.add_argument('--unchange-rate', default=90.0, type=float,
+                        help='Start unchage rate for training')
+    parser.add_argument('--lower-bound', default=0.0, type=float,
+                        help='Set the lowest value for unchange rate')
+    parser.add_argument('--scheduling-freq', default=10, type=int,
+                        help='Scheduling frequency for unchange rate')
+    parser.add_argument('--history-length', default=5, type=int,
+                        help='History epoch length for unchange rate scheduling')
     parser.add_argument('--log-mode', dest='log_mode', action='store_true',
                         help='Enable log for CaPS optimizer')
     parser.add_argument('--log-dir', default=None, type=str,

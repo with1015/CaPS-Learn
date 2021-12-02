@@ -1,11 +1,14 @@
 import torch
 import copy
 import time
+from collections import deque
 
 class _CapsOptimizer(torch.optim.Optimizer):
 
-    def __init__(self, params, unchange_rate=99.0,
-                log_mode=False, log_dir=None):
+    def __init__(self, params,
+                 unchange_rate=99.0, adjust_rate=1.0, lower_bound=60.0,
+                 scheduling_freq=1000, history_length=10
+                 log_mode=False, log_dir=None):
 
         super(self.__class__, self).__init__(params)
         self.params = params
@@ -19,6 +22,11 @@ class _CapsOptimizer(torch.optim.Optimizer):
         self.log_dir = log_dir
         self.param_size = 0
         self.skip_count = 0
+
+        # unchange_rate scheduling
+        self.adjust_rate = adjust_rate
+        self.lower_bound = lower_bound
+        self.metric_queue = deque(maxlen=history_length)
 
         for idx in range(self.num_tensors):
             t = self.params[0]['params'][idx].data
@@ -36,6 +44,10 @@ class _CapsOptimizer(torch.optim.Optimizer):
                             f.write(str(current_size) + "\n")
 
         if self.steps != 0:
+            if self.steps % scheduling_freq == 0:
+                bad_valid = self._check_validation()
+                self._schedule_unchange_rate(bad_valid)
+
             for idx in range(self.num_tensors):
                 #
                 # TODO: determine concrete metric for check parameter change.
@@ -68,6 +80,25 @@ class _CapsOptimizer(torch.optim.Optimizer):
 
     def get_skip_count(self):
         return self.skip_count
+
+
+    def get_validation(self, metric):
+        self.metric_queue.append(metric)
+
+
+    def _check_validation(self):
+        return all(x <= y for x, y in zip(self.metric_queue, metric_queue[1:]))
+
+
+    def _schedule_unchange_rate(self, bad_valid=False):
+        if bad_valid == False:
+            self.unchange_rate = self.unchange_rate - self.adjust_rate
+            if self.unchange_rate <= self.lower_bound:
+                self.unchange_rate = self.lower_bound
+        else:
+            if self.unchange_rate == 100.0:
+                return
+            self.unchange_rate = self.unchange_rate + self.adjust_rate
 
 
 def CapsOptimizer(optimizer, unchange_rate=90.0, log_mode=False, log_dir=None):

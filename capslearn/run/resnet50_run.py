@@ -39,6 +39,7 @@ train_loader, test_loader, num_classes = ld.get_loader(batch_size=batch_size,
                                                     resize=70,
                                                     num_workers=args.num_workers)
 
+
 model = models.resnet50(num_classes=num_classes)
 model = model.to(device)
 
@@ -47,7 +48,14 @@ model = DistributedDataParallel(model, device_ids=[0])
 
 criterion = torch.nn.CrossEntropyLoss().cuda()
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
-optimizer = opt.CapsOptimizer(optimizer, unchange_rate=90.0)
+
+# Apply CapsOptimizer
+scheduling_freq = args.scheduling_freq * len(train_loader)
+optimizer = opt.CapsOptimizer(optimizer,
+                              unchange_rate=args.unchange_rate,
+                              lower_bound=args.lower_bound,
+                              scheduling_freq=scheduling_freq,
+                              history_length=args.history_length)
 
 for epoch in range(epochs):
     print("Epoch: ", epoch)
@@ -64,3 +72,19 @@ for epoch in range(epochs):
             optimizer.step()
 
             iteration.set_postfix(loss=loss.item())
+
+    print("Validate epoch:", epoch)
+    accuracy_cnt = 0
+    for idx, data in test_loader:
+        inputs, labels = data
+        inputs = inputs.cuda(device)
+        labels = labels.cuda(device)
+        outputs = model(inputs)
+
+        if outputs == labels:
+            accuracy_cnt += 1
+
+    accuracy = 100 * accuracy_cnt / len(test_loader)
+    print("Accuracy:", accuracy)
+
+    optimizer.get_validation(accuracy)

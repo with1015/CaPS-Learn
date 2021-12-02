@@ -13,10 +13,13 @@ python3 ${RUN_DIR}/${APP} \
   --epoch 1 \
   --batch-size 32 \
   --lr 0.001 \
+  --unchange-rate 90.0 \
+  --lower-bound 0.0 \
+  --scheduling-freq 10 \
+  --history-length 5 \
   --world-size 2 \
   --rank 0 \
   --master-addr $MASTER_ADDR \
   --master-port $MASTER_PORT \
-  --log-mode \
   $DATA_DIR
 
