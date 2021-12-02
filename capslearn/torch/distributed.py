@@ -63,8 +63,11 @@ class DistributedDataParallel(torch.nn.Module):
         dist.broadcast(param, src=0, group=self.total_process_group)
 
 
-    def _reduce_parameters(self, param, target=0, group=self.total_process_group):
-        dist.reduce(param, dst=target, group=group)
+    def _reduce_parameters(self, param, target=0, group=None):
+        if group != None:
+            dist.reduce(param, dst=target, group=group)
+        else:
+            dist.reduce(param, dst=target, group=self.total_process_group)
 
 
     def _create_new_group(self, ranks=[]):

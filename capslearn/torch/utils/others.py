@@ -32,9 +32,9 @@ def argument_parsing():
                         help='Define DDP rank')
     parser.add_argument('--world-size', default=1, type=int,
                         help='Define world size for DDP')
-    parser.add_argument('--master_addr', default='localhost', type=str,
+    parser.add_argument('--master-addr', default='localhost', type=str,
                         help='Define master address of DistributedDataParallel')
-    parser.add_argument('--master_port', default='28000', type=str,
+    parser.add_argument('--master-port', default='28000', type=str,
                         help='Define master port of DistributedDataParallel')
 
 
