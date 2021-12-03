@@ -36,7 +36,7 @@ class DistributedDataParallel(torch.nn.Module):
         self._tensor_list = [tensor for _, tensor in sorted(named_parameters)]
         self.updatable_layers = []
 
-        for _ in len(self.world_size):
+        for _ in range(self.world_size):
             checker = torch.ones(len(self._tensor_list), dtype=torch.int8, device='cpu')
             self.updatable_layers.append(checker)
 
@@ -52,9 +52,6 @@ class DistributedDataParallel(torch.nn.Module):
             return
         if self.broadcast_buffers:
             for idx, param in enumerate(self._tensor_list):
-                #
-                # TODO: Selective reduction protocol will be needed
-                #
                 if param.requires_grad == False:
                     continue
 
@@ -63,8 +60,9 @@ class DistributedDataParallel(torch.nn.Module):
                 self._reduce_parameters(param.detach(), group=self.temp_group)
                 dist.destroy_process_group(group=self.temp_group)
 
-            with torch.no_grad():
+                with torch.no_grad():
                     param /= self.world_size
+
                 param.requires_grad_()
 
             for param in self._tensor_list:
@@ -92,7 +90,7 @@ class DistributedDataParallel(torch.nn.Module):
 
     def _check_ranks(self, idx):
         reduce_target = []
-        for rank in len(self.world_size):
+        for rank in range(self.world_size):
             if self.updatable_layers[rank][idx] == 1:
                 reduce_target.append(rank)
         return reduce_target
