@@ -34,6 +34,11 @@ class DistributedDataParallel(torch.nn.Module):
         named_parameters = list(self.module.named_parameters())
         self._parameter_names = {v.__hash__(): k for k, v in sorted(named_parameters)}
         self._tensor_list = [tensor for _, tensor in sorted(named_parameters)]
+        self.updatable_layers = []
+
+        for _ in len(self.world_size):
+            checker = torch.ones(len(self._tensor_list), dtype=torch.int8, device='cpu')
+            self.updatable_layers.append(checker)
 
 
     def forward(self, *inputs, **kwargs):
@@ -46,13 +51,19 @@ class DistributedDataParallel(torch.nn.Module):
         if self.total_process_group.size() == 1:
             return
         if self.broadcast_buffers:
-            for param in self._tensor_list:
+            for idx, param in enumerate(self._tensor_list):
+                #
+                # TODO: Selective reduction protocol will be needed
+                #
                 if param.requires_grad == False:
-                    #
-                    # TODO: Selective reduction protocol will be needed
-                    #
-                    self._reduce_parameters(param.detach())
-                with torch.no_grad():
+                    continue
+
+                selective_ranks = self._check_ranks(idx)
+                self.temp_group = dist.new_group(ranks=selective_ranks, backend='gloo')
+                self._reduce_parameters(param.detach(), group=self.temp_group)
+                dist.destroy_process_group(group=self.temp_group)
+
+            with torch.no_grad():
                     param /= self.world_size
                 param.requires_grad_()
 
@@ -72,6 +83,16 @@ class DistributedDataParallel(torch.nn.Module):
             dist.reduce(param, dst=target, group=self.total_process_group)
 
 
-    def _create_new_group(self, ranks=[]):
-        temp_group = new_group(ranks=ranks, backend='gloo')
-        return temp_group
+    def _reduce_parameter_v2(self, param, src, dst):
+        if src != None:
+            dist.recv(tensor=param, src=src)
+        elif dst != self.rank:
+            dist.send(tensor=param, dst=dst)
+
+
+    def _check_ranks(self, idx):
+        reduce_target = []
+        for rank in len(self.world_size):
+            if self.updatable_layers[rank][idx] == 1:
+                reduce_target.append(rank)
+        return reduce_target
