@@ -50,7 +50,7 @@ class DistributedDataParallel(torch.nn.Module):
 
         # Synchronize whole process
         dist.barrier(group=self.total_process_group)
-        self._gather_valid_param()
+        #self._gather_valid_param()
 
         if self.broadcast_buffers:
             for idx, param in enumerate(self._tensor_list):
@@ -95,7 +95,7 @@ class DistributedDataParallel(torch.nn.Module):
         if self.rank == 0:
             result = [send_buf]
             for rank in range(self.world_size):
-                if rank == 0:
+                if rank != 0:
                     param = torch.empty(send_buf.shape)
                     dist.recv(param, src=rank, group=self.total_process_group)
                     result.append(param)
