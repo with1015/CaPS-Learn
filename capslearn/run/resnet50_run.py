@@ -56,12 +56,12 @@ optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
 
 # Apply CapsOptimizer
-#scheduling_freq = args.scheduling_freq * len(train_loader)
-#optimizer = opt.CapsOptimizer(optimizer,
-#                              unchange_rate=args.unchange_rate,
-#                              lower_bound=args.lower_bound,
-#                              scheduling_freq=scheduling_freq,
-#                              history_length=args.history_length)
+scheduling_freq = args.scheduling_freq * len(train_loader)
+optimizer = opt.CapsOptimizer(optimizer,
+                              unchange_rate=args.unchange_rate,
+                              lower_bound=args.lower_bound,
+                              scheduling_freq=scheduling_freq,
+                              history_length=args.history_length)
 
 for epoch in range(epochs):
     print("Epoch: ", epoch)
@@ -79,19 +79,19 @@ for epoch in range(epochs):
 
             iteration.set_postfix(loss=loss.item())
 
-    print("Validate epoch:", epoch)
-    accuracy_cnt = 0
-    for idx, data in enumerate(test_loader):
-        inputs, labels = data
-        inputs = inputs.cuda()
-        labels = labels.cuda()
-        outputs = model(inputs)
+        """
+        print("Validate epoch:", epoch)
+        accuracy_cnt = 0
+        for idx, data in enumerate(test_loader):
+            inputs, labels = data
+            inputs = inputs.cuda()
+            labels = labels.cuda()
+            outputs = model(inputs)
 
-        _, pred = torch.max(outputs, 1)
-        print(pred)
-        accuracy_cnt += torch.sum(pred == labels.data)
+            _, pred = torch.max(outputs, 1)
+            accuracy_cnt += torch.sum(pred == labels.data)
 
-    accuracy = 100 * accuracy_cnt / len(test_loader)
-    print("Accuracy:", accuracy)
+        #accuracy = 100 * accuracy_cnt / len(test_loader)
+        print("Accuracy:", accuracy_cnt)
 
-    #optimizer.get_validation(accuracy)
+        #optimizer.get_validation(accuracy)"""
