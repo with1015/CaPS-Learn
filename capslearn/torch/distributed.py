@@ -38,10 +38,6 @@ class DistributedDataParallel(torch.nn.Module):
         self._tensor_list = [tensor for _, tensor in sorted(named_parameters)]
         self.updatable_layers = []
 
-        for _ in range(self.world_size):
-            checker = torch.ones(len(self._tensor_list), dtype=torch.int8, device='cpu')
-            self.updatable_layers.append(checker)
-
 
     def forward(self, *inputs, **kwargs):
         if self.require_forward_param_sync:
@@ -52,32 +48,30 @@ class DistributedDataParallel(torch.nn.Module):
     def _sync_params(self):
         if self.total_process_group.size() == 1:
             return
+
+        # Synchronize whole process
+        dist.barrier(group=self.total_process_group)
+        self._gather_valid_param()
+
         if self.broadcast_buffers:
             for idx, param in enumerate(self._tensor_list):
-                if param.requires_grad == False:
-                    continue
-
-                #selective_ranks, non_ranks = self._check_ranks(idx)
-                #dist.barrier(group=self.total_process_group)
-                #selective_ranks = [0, 1]
-                #temp_group = dist.new_group(ranks=selective_ranks)
-                #self._reduce_parameters(param.detach(), group=temp_group)
-                #dist.barrier(group=self.total_process_group)
-                #dist.destroy_process_group(group=temp_group)
-
                 if self.rank != 0:
-                    send_req = dist.isend(param.detach().cpu(), dst=0, group=self.total_process_group)
-                    send_req.wait()
+                    if param.requires_grad == True:
+                        send_req = dist.isend(param.detach().cpu(), dst=0, group=self.total_process_group)
+                        #send_req.wait()
                 else:
                     with torch.no_grad():
+                        cnt = 1
                         for rank in range(self.world_size):
                             if rank != 0:
-                                recv_buf = torch.zeros(param.size())
-                                recv_req = dist.irecv(recv_buf, src=rank)
-                                recv_req.wait()
-                                param = param + recv_buf.cuda()
+                                if self._check_valid_param(rank, idx) == True:
+                                    recv_buf = torch.zeros(param.size())
+                                    recv_req = dist.irecv(recv_buf, src=rank)
+                                    recv_req.wait()
+                                    param = param + recv_buf.cuda()
+                                    cnt += 1
 
-                        param /= self.world_size
+                        param /= cnt
 
                 dist.barrier(group=self.total_process_group)
                 param.requires_grad_()
@@ -91,26 +85,16 @@ class DistributedDataParallel(torch.nn.Module):
         dist.broadcast(param, src=0, group=self.total_process_group)
 
 
-    def _reduce_parameters(self, param, target=0, group=None):
-        if group != None:
-            dist.reduce(param, dst=target, group=group)
-        else:
-            dist.reduce(param, dst=target, group=sel.total_process_group)
-
-
-    def _reduce_parameter_v2(self, param, src=None, dst=0):
-        if src == self.rank:
-            dist.send(tensor=param, dst=dst)
-        elif dst == self.rank:
-            dist.recv(tensor=param, src=src)
-
-
-    def _check_ranks(self, idx):
-        reduce_target = []
-        non_target = []
-        for rank in range(self.world_size):
-            if self.updatable_layers[rank][idx] == 1:
-                reduce_target.append(rank)
+    def _gather_valid_param(self):
+        buf = []
+        for tensor in self._tensor_list:
+            if tensor.requires_grad == True:
+                buf.append(True)
             else:
-                non_target.append(rank)
-        return reduce_target, non_target
+                buf.append(False)
+        send_buf = torch.tensor(buf, device='cpu')
+        dist.gather(send_buf, gather_list=self.updatable_layers, dst=0, group=self.total_process_group)
+
+
+    def _check_valid_param(self, rank, param_idx):
+        return True if self.updatable_layers[rank][param_idx] == True else False

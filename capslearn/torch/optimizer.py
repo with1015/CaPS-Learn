@@ -82,7 +82,6 @@ class _CapsOptimizer(torch.optim.Optimizer):
     def get_skip_count(self):
         return self.skip_count
 
-
     def get_validation(self, metric):
         self.metric_queue.append(metric)
 
