@@ -1,16 +1,13 @@
 import os
 import torch
 import torch.distributed as dist
+from torch.nn.parallel import DistributedDataParallel
 
 import torchvision
 import torchvision.transforms as transforms
 import torchvision.models as models
 
-import capslearn.torch.optimizer as opt
-import capslearn.torch.utils.cifar10_load as ld
 import capslearn.torch.utils.others as utility
-
-from capslearn.torch.distributed import DistributedDataParallel
 
 from tqdm import tqdm
 
@@ -48,20 +45,10 @@ train_loader, test_loader, num_classes = ld.get_loader(batch_size=batch_size,
 # Define model with CaPS-DDP
 model = models.resnet50(num_classes=num_classes)
 model = model.to(device)
-model = DistributedDataParallel(model, device_ids=[0], find_unused_parameters=True)
-
+model = DistributedDataParallel(model, device_ids=[0])
 
 criterion = torch.nn.CrossEntropyLoss().cuda()
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
-
-
-# Apply CapsOptimizer
-scheduling_freq = args.scheduling_freq * len(train_loader)
-optimizer = opt.CapsOptimizer(optimizer,
-                              unchange_rate=args.unchange_rate,
-                              lower_bound=args.lower_bound,
-                              scheduling_freq=scheduling_freq,
-                              history_length=args.history_length)
 
 for epoch in range(epochs):
     print("Epoch: ", epoch)
@@ -93,4 +80,3 @@ for epoch in range(epochs):
     accuracy = 100 * accuracy_cnt / len(test_loader)
     print("Accuracy:", accuracy)
 
-    optimizer.get_validation(accuracy)

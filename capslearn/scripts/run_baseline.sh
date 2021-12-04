@@ -4,7 +4,7 @@ LOG_DIR=${HOME}/CaPS-Learn/capslearn/logs
 DATA_DIR=/scratch/with1015/datasets/cifar10
 RUN_DIR=${HOME}/CaPS-Learn/capslearn/run
 
-APP="resnet50_run.py"
+APP="baseline.py"
 MASTER_ADDR="ib049"
 MASTER_PORT="28000"
 
