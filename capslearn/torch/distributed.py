@@ -90,14 +90,14 @@ class DistributedDataParallel(torch.nn.Module):
         buf = []
         for tensor in self._tensor_list:
             if tensor.requires_grad == True:
-                buf.append(True)
+                buf.append(1)
             else:
-                buf.append(False)
+                buf.append(0)
         send_buf = torch.tensor(buf, device='cpu')
         if self.rank == 0:
-            recv_buf = []
-            dist.gather(send_buf, gather_list=recv_buf, dst=0, group=self.total_process_group)
-            self.updatable_layers = recv_buf
+            dist.gather(send_buf, gather_list=send_buf, dst=0, group=self.total_process_group)
+            print(buf.shape)
+            self.updatable_layers = buf
         else:
             dist.gather(send_buf, dst=0, group=self.total_process_group)
 
