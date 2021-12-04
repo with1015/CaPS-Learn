@@ -93,10 +93,10 @@ class DistributedDataParallel(torch.nn.Module):
                 buf.append(1)
             else:
                 buf.append(0)
-        send_buf = torch.tensor(buf, device='cpu')
+        send_buf = torch.tensor(buf, dtype=int, device='cpu')
         if self.rank == 0:
-            dist.gather(send_buf, gather_list=send_buf, dst=0, group=self.total_process_group)
-            print(buf.shape)
+            recv_buf = [torch.zeros(send_buf.shape) for idx in range(self.world_size)]
+            dist.gather(send_buf, gather_list=recv_buf, dst=0, group=self.total_process_group)
             self.updatable_layers = buf
         else:
             dist.gather(send_buf, dst=0, group=self.total_process_group)
