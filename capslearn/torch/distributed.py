@@ -29,15 +29,13 @@ class DistributedDataParallel(torch.nn.Module):
 
         print("Initializing DDP rank", self.rank)
         self.world_size = self.total_process_group.size()
-        self.temp_group = None
-
 
         # Leanring parameters initialize
         self.modules_buffers = [list(self.module.buffers())]
         named_parameters = list(self.module.named_parameters())
         self._parameter_names = {v.__hash__(): k for k, v in sorted(named_parameters)}
         self._tensor_list = [tensor for _, tensor in sorted(named_parameters)]
-        self.updatable_layers = []
+        self.updatable_layers = None
 
 
     def forward(self, *inputs, **kwargs):
@@ -90,16 +88,21 @@ class DistributedDataParallel(torch.nn.Module):
         buf = []
         for tensor in self._tensor_list:
             if tensor.requires_grad == True:
-                buf.append(1)
+                buf.append(True)
             else:
-                buf.append(0)
-        send_buf = torch.tensor(buf, dtype=torch.int, device='cpu')
+                buf.append(False)
+        send_buf = torch.tensor(buf, device='cpu')
         if self.rank == 0:
-            recv_buf = [torch.zeros(send_buf.shape) for idx in range(self.world_size)]
-            dist.gather(send_buf, gather_list=recv_buf, dst=0, group=self.total_process_group)
-            self.updatable_layers = buf
+            result = [send_buf]
+            for rank in range(self.world_size):
+                if rank == 0:
+                    param = torch.empty(send_buf.shape)
+                    dist.recv(param, src=rank, group=self.total_process_group)
+                    result.append(param)
+
+            self.updatable_layers = result
         else:
-            dist.gather(send_buf, dst=0, group=self.total_process_group)
+            dist.send(param, dst=0, group=total_process_group)
 
 
     def _check_valid_param(self, rank, param_idx):
