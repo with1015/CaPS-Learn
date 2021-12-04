@@ -21,9 +21,9 @@ if torch.distributed.rpc.is_available():
     from torch.distributed.rpc import RRef
 from torch._utils import _get_device_index
 
-from ..modules import Module
-from ._functions import _get_stream
-from .scatter_gather import scatter_kwargs, gather, is_namedtuple
+from torch.nn.modules import Module
+from torch.nn.parallel._functions import _get_stream
+from torch.nn.parallel.scatter_gather import scatter_kwargs, gather, is_namedtuple
 
 
 def _find_tensors(obj):
