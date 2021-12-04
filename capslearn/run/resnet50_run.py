@@ -28,6 +28,7 @@ world_size = args.world_size
 
 os.environ['MASTER_ADDR'] = args.master_addr
 os.environ['MASTER_PORT'] = args.master_port
+dist.init_process_group(backend='gloo', rank=rank, world_size=world_size)
 
 #normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
 #                                std=[0.229, 0.224, 0.225])
@@ -47,7 +48,6 @@ train_loader, test_loader, num_classes = ld.get_loader(batch_size=batch_size,
 # Define model with CaPS-DDP
 model = models.resnet50(num_classes=num_classes)
 model = model.to(device)
-dist.init_process_group(backend='gloo', rank=rank, world_size=world_size)
 model = DistributedDataParallel(model, device_ids=[0])
 
 
