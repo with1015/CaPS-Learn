@@ -102,7 +102,7 @@ class DistributedDataParallel(torch.nn.Module):
 
             self.updatable_layers = result
         else:
-            dist.send(send_buf, dst=0, group=total_process_group)
+            dist.send(send_buf, dst=0, group=self.total_process_group)
 
 
     def _check_valid_param(self, rank, param_idx):
