@@ -27,6 +27,7 @@ class DistributedDataParallel(torch.nn.Module):
         self.rank = self.total_process_group.rank()
         assert(self.total_process_group.size() > 0)
 
+        print("Initializing DDP rank", self.rank)
         self.world_size = self.total_process_group.size()
         self.temp_group = None
 
@@ -93,7 +94,10 @@ class DistributedDataParallel(torch.nn.Module):
             else:
                 buf.append(False)
         send_buf = torch.tensor(buf, device='cpu')
-        dist.gather(send_buf, gather_list=self.updatable_layers, dst=0, group=self.total_process_group)
+        if self.rank == 0:
+            dist.gather(send_buf, gather_list=self.updatable_layers, group=self.total_process_group)
+        else:
+            dist.gather(send_buf, dst=0, group=self.total_process_group)
 
 
     def _check_valid_param(self, rank, param_idx):
