@@ -40,7 +40,8 @@ os.environ['MASTER_PORT'] = args.master_port
 train_loader, test_loader, num_classes = ld.get_loader(batch_size=batch_size,
                                                     data_dir=args.data,
                                                     resize=70,
-                                                    num_workers=args.workers)
+                                                    num_workers=args.workers,
+                                                    sampler=True)
 
 
 # Define model with CaPS-DDP
