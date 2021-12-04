@@ -18,14 +18,14 @@ def get_loader(batch_size=32, resize=224, data_dir="./data", num_workers=4, samp
 
     if sampler == True:
         sampling = torch.utils.data.distributed.DistributedSampler(train_set)
-        train_loader = dataloader(train_set,
+        train_loader = Dataloader(train_set,
                                   batch_size=batch_size,
                                   shuffle=False,
                                   num_workers=num_workers,
                                   pin_memory=True,
                                   sampler=sampling)
     else:
-        train_loader = dataloader(train_set,
+        train_loader = Dataloader(train_set,
                                   batch_size=batch_size,
                                   shuffle=True,
                                   num_workers=num_workers,
