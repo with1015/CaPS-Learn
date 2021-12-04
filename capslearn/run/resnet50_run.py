@@ -82,9 +82,7 @@ for epoch in range(epochs):
     print("Validate epoch:", epoch)
     accuracy_cnt = 0
     for idx, data in test_loader:
-        inputs, labels = data
-        inputs = inputs.cuda(device)
-        labels = labels.cuda(device)
+        inputs = data.cuda(device)
         outputs = model(inputs)
 
         if outputs == labels:
