@@ -29,7 +29,7 @@ def get_loader(batch_size=32, resize=224, data_dir="./data", num_workers=4, samp
                                   batch_size=batch_size,
                                   shuffle=True,
                                   num_workers=num_workers,
-                                  pin_memory=true)
+                                  pin_memory=True)
 
 
     test_loader = DataLoader(test_set,

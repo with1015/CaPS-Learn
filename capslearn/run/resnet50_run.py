@@ -28,7 +28,7 @@ world_size = args.world_size
 
 os.environ['MASTER_ADDR'] = args.master_addr
 os.environ['MASTER_PORT'] = args.master_port
-dist.init_process_group(backend='gloo', rank=rank, world_size=world_size)
+dist.init_process_group(backend='nccl', rank=rank, world_size=world_size)
 
 #normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
 #                                std=[0.229, 0.224, 0.225])
@@ -52,16 +52,16 @@ model = DistributedDataParallel(model, device_ids=[0], find_unused_parameters=Tr
 
 
 criterion = torch.nn.CrossEntropyLoss().cuda()
-optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
+optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
 
 # Apply CapsOptimizer
-scheduling_freq = args.scheduling_freq * len(train_loader)
-optimizer = opt.CapsOptimizer(optimizer,
-                              unchange_rate=args.unchange_rate,
-                              lower_bound=args.lower_bound,
-                              scheduling_freq=scheduling_freq,
-                              history_length=args.history_length)
+#scheduling_freq = args.scheduling_freq * len(train_loader)
+#optimizer = opt.CapsOptimizer(optimizer,
+#                              unchange_rate=args.unchange_rate,
+#                              lower_bound=args.lower_bound,
+#                              scheduling_freq=scheduling_freq,
+#                              history_length=args.history_length)
 
 for epoch in range(epochs):
     print("Epoch: ", epoch)
@@ -81,14 +81,17 @@ for epoch in range(epochs):
 
     print("Validate epoch:", epoch)
     accuracy_cnt = 0
-    for idx, data in test_loader:
-        inputs = data.cuda(device)
+    for idx, data in enumerate(test_loader):
+        inputs, labels = data
+        inputs = inputs.cuda()
+        labels = labels.cuda()
         outputs = model(inputs)
 
-        if outputs == labels:
-            accuracy_cnt += 1
+        _, pred = torch.max(outputs, 1)
+        print(pred)
+        accuracy_cnt += torch.sum(pred == labels.data)
 
     accuracy = 100 * accuracy_cnt / len(test_loader)
     print("Accuracy:", accuracy)
 
-    optimizer.get_validation(accuracy)
+    #optimizer.get_validation(accuracy)

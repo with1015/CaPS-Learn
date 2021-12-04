@@ -10,7 +10,7 @@ MASTER_PORT="28000"
 
 source ${RUN_DIR}/set-env.sh
 python3 ${RUN_DIR}/${APP} \
-  --epoch 1 \
+  --epoch 100 \
   --batch-size 32 \
   --workers 16 \
   --lr 0.001 \
@@ -18,7 +18,7 @@ python3 ${RUN_DIR}/${APP} \
   --lower-bound 0.0 \
   --scheduling-freq 10 \
   --history-length 5 \
-  --world-size 4 \
+  --world-size 2 \
   --rank 0 \
   --master-addr $MASTER_ADDR \
   --master-port $MASTER_PORT \
