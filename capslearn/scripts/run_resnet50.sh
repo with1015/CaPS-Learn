@@ -18,7 +18,7 @@ python3 ${RUN_DIR}/${APP} \
   --lower-bound 0.0 \
   --scheduling-freq 10 \
   --history-length 5 \
-  --world-size 2 \
+  --world-size 4 \
   --rank 0 \
   --master-addr $MASTER_ADDR \
   --master-port $MASTER_PORT \

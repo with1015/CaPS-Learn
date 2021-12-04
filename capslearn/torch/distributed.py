@@ -3,6 +3,7 @@ import torch
 import torch.distributed as dist
 #import torch.nn.modules as Module
 
+from datetime import timedelta
 from torch.distributed.distributed_c10d import _get_default_group
 from torch.distributed.distributed_c10d import new_group
 
@@ -28,6 +29,7 @@ class DistributedDataParallel(torch.nn.Module):
 
         self.world_size = self.total_process_group.size()
         self.temp_group = None
+
 
         # Leanring parameters initialize
         self.modules_buffers = [list(self.module.buffers())]
@@ -55,14 +57,29 @@ class DistributedDataParallel(torch.nn.Module):
                 if param.requires_grad == False:
                     continue
 
-                selective_ranks = self._check_ranks(idx)
-                self.temp_group = dist.new_group(ranks=selective_ranks, backend='gloo')
-                self._reduce_parameters(param.detach(), group=self.temp_group)
-                dist.destroy_process_group(group=self.temp_group)
+                #selective_ranks, non_ranks = self._check_ranks(idx)
+                #dist.barrier(group=self.total_process_group)
+                #selective_ranks = [0, 1]
+                #temp_group = dist.new_group(ranks=selective_ranks)
+                #self._reduce_parameters(param.detach(), group=temp_group)
+                #dist.barrier(group=self.total_process_group)
+                #dist.destroy_process_group(group=temp_group)
 
-                with torch.no_grad():
-                    param /= self.world_size
+                if self.rank != 0:
+                    send_req = dist.isend(param.detach().cpu(), dst=0, group=self.total_process_group)
+                    send_req.wait()
+                else:
+                    with torch.no_grad():
+                        for rank in range(self.world_size):
+                            if rank != 0:
+                                recv_buf = torch.zeros(param.size())
+                                recv_req = dist.irecv(recv_buf, src=rank)
+                                recv_req.wait()
+                                param = param + recv_buf.cuda()
 
+                        param /= self.world_size
+
+                dist.barrier(group=self.total_process_group)
                 param.requires_grad_()
 
             for param in self._tensor_list:
@@ -78,19 +95,22 @@ class DistributedDataParallel(torch.nn.Module):
         if group != None:
             dist.reduce(param, dst=target, group=group)
         else:
-            dist.reduce(param, dst=target, group=self.total_process_group)
+            dist.reduce(param, dst=target, group=sel.total_process_group)
 
 
-    def _reduce_parameter_v2(self, param, src, dst):
-        if src != None:
-            dist.recv(tensor=param, src=src)
-        elif dst != self.rank:
+    def _reduce_parameter_v2(self, param, src=None, dst=0):
+        if src == self.rank:
             dist.send(tensor=param, dst=dst)
+        elif dst == self.rank:
+            dist.recv(tensor=param, src=src)
 
 
     def _check_ranks(self, idx):
         reduce_target = []
+        non_target = []
         for rank in range(self.world_size):
             if self.updatable_layers[rank][idx] == 1:
                 reduce_target.append(rank)
-        return reduce_target
+            else:
+                non_target.append(rank)
+        return reduce_target, non_target
