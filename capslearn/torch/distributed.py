@@ -49,7 +49,7 @@ class DistributedDataParallel(torch.nn.Module):
             return
 
         # Synchronize whole process
-        dist.barrier(group=self.total_process_group)
+        #dist.barrier(group=self.total_process_group)
         #self._gather_valid_param()
 
         if self.broadcast_buffers:
@@ -57,18 +57,18 @@ class DistributedDataParallel(torch.nn.Module):
                 if self.rank != 0:
                     if param.requires_grad == True:
                         send_req = dist.isend(param.detach().cpu(), dst=0, group=self.total_process_group)
-                        #send_req.wait()
+                        send_req.wait()
                 else:
                     with torch.no_grad():
                         cnt = 1
                         for rank in range(self.world_size):
                             if rank != 0:
-                                if self._check_valid_param(rank, idx) == True:
-                                    recv_buf = torch.zeros(param.size())
-                                    recv_req = dist.irecv(recv_buf, src=rank)
-                                    recv_req.wait()
-                                    param = param + recv_buf.cuda()
-                                    cnt += 1
+                                #if self._check_valid_param(rank, idx) == True:
+                                recv_buf = torch.zeros(param.size())
+                                recv_req = dist.irecv(recv_buf, src=rank)
+                                recv_req.wait()
+                                param = param + recv_buf.cuda()
+                                cnt += 1
 
                         param /= cnt
 
