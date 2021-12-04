@@ -95,10 +95,12 @@ class DistributedDataParallel(torch.nn.Module):
                 buf.append(False)
         send_buf = torch.tensor(buf, device='cpu')
         if self.rank == 0:
-            dist.gather(send_buf, gather_list=self.updatable_layers, group=self.total_process_group)
+            recv_buf = []
+            dist.gather(send_buf, gather_list=recv_buf, dst=0, group=self.total_process_group)
+            self.updatable_layers = recv_buf
         else:
             dist.gather(send_buf, dst=0, group=self.total_process_group)
 
 
     def _check_valid_param(self, rank, param_idx):
-        return True if self.updatable_layers[rank][param_idx] == True else False
+        return True if self.updatable_layers[rank][param_idx] == 1 else False
