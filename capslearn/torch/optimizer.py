@@ -59,8 +59,12 @@ class _CapsOptimizer(torch.optim.Optimizer):
                 # TODO: implement more concrete and faster way to search tensor.
                 #
 
-                current_params = torch.round(self.params[0]['params'][idx].data * self.round_factor)
-                previous = torch.round(self.prev_params[0]['params'][idx].data * self.round_factor)
+                if self.round_factor >= 0:
+                    current_params = torch.round(self.params[0]['params'][idx].data * self.round_factor)
+                    previous = torch.round(self.prev_params[0]['params'][idx].data * self.round_factor)
+                else:
+                    current_params = self.params[0]['params'][idx].data
+                    previous = self.prev_params[0]['params'][idx].data
 
                 compare = torch.eq(current_params, previous)
                 result = torch.count_nonzero(compare).item()

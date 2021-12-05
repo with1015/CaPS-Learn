@@ -61,9 +61,10 @@ optimizer = opt.CapsOptimizer(optimizer,
                               unchange_rate=args.unchange_rate,
                               lower_bound=args.lower_bound,
                               scheduling_freq=scheduling_freq,
-                              history_length=args.history_length)
-#                              log_mode=True,
-#                              log_dir="/home/with1015/CaPS-Learn/capslearn/run/log")
+                              history_length=args.history_length,
+                              round_factor=args.round_factor,
+                              log_mode=True,
+                              log_dir="/home/with1015/CaPS-Learn/capslearn/run/log")
 
 for epoch in range(epochs):
     print("Epoch: ", epoch)
