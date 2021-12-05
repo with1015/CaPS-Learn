@@ -89,4 +89,4 @@ for epoch in range(epochs):
 
             iteration.set_postfix(loss=loss.item(), accuracy=100.*accuracy)
 
-        optimizer.get_validation(100 * accuracy)
+        optimizer.get_validation(loss.item())

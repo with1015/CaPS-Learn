@@ -6,9 +6,11 @@ from collections import deque
 class _CapsOptimizer(torch.optim.Optimizer):
 
     def __init__(self, params,
-                 unchange_rate=99.0, adjust_rate=1.0, lower_bound=60.0,
+                 unchange_rate=99.0, adjust_rate=1.0,
+                 lower_bound=5.0, max_bound=50.0,
                  scheduling_freq=1000, history_length=10,
-                 round_factor=4,
+                 round_factor=-1,
+                 custom_metric=None,
                  log_mode=False, log_dir=None):
 
         super(self.__class__, self).__init__(params)
@@ -30,7 +32,9 @@ class _CapsOptimizer(torch.optim.Optimizer):
         self.adjust_rate = adjust_rate
         self.scheduling_freq = scheduling_freq
         self.lower_bound = lower_bound
+        self.max_bound = max_bound
         self.metric_queue = deque(maxlen=history_length)
+        self.custom_metric = custom_metric
 
         for idx in range(self.num_tensors):
             t = self.params[0]['params'][idx].data
@@ -94,25 +98,31 @@ class _CapsOptimizer(torch.optim.Optimizer):
 
 
     def _check_validation(self):
-        return all(x <= y for x, y in zip(self.metric_queue, self.metric_queue[1:]))
+        converted = list(self.metric_queue)
+        if self.custom_metric == None:
+            return all(x >= y for x, y in zip(converted, converted[1:]))
+        else:
+            return self.custom_metric(converted)
 
 
     def _schedule_unchange_rate(self, bad_valid=False):
+        print("[CaPS System] Adjust unchange parameter rate")
         if bad_valid == False:
-            print("[CaPS System] Adjust unchange parameter rate")
             self.unchange_rate = self.unchange_rate + self.adjust_rate
+            if self.unchange_rate >= self.max_bound:
+                self.unchange_rate = self.max_bound
+        else:
             if self.unchange_rate <= self.lower_bound:
                 self.unchange_rate = self.lower_bound
-        else:
-            if self.unchange_rate == 100.0:
-                return
-            self.unchange_rate = self.unchange_rate - self.adjust_rate
+            else:
+                self.unchange_rate = self.unchange_rate - self.adjust_rate
+        print("[CaPS System] Current threshold:", self.unchange_rate)
 
 
 def CapsOptimizer(optimizer,
-                  unchange_rate=90.0, adjust_rate=1.0, lower_bound=60.0,
+                  unchange_rate=90.0, adjust_rate=1.0, lower_bound=5.0, max_bound=50.0,
                   scheduling_freq=1000, history_length=10,
-                  round_factor=4,
+                  round_factor=4, custom_metric=None,
                   log_mode=False, log_dir=None):
 
     cls = type(optimizer.__class__.__name__, (optimizer.__class__,),
@@ -122,7 +132,9 @@ def CapsOptimizer(optimizer,
                unchange_rate=unchange_rate,
                adjust_rate=adjust_rate,
                lower_bound=lower_bound,
+               max_bound=max_bound,
                scheduling_freq=scheduling_freq,
                history_length=history_length,
                round_factor=round_factor,
+               custom_metric=custom_metric,
                log_mode=log_mode, log_dir=log_dir)

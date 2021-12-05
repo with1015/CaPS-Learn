@@ -15,9 +15,8 @@ python3 ${RUN_DIR}/${APP} \
   --workers 16 \
   --lr 0.001 \
   --unchange-rate 10.0 \
-  --lower-bound 0.0 \
-  --scheduling-freq 10 \
-  --history-length 5 \
+  --scheduling-freq 5 \
+  --history-length 3 \
   --round-factor -1 \
   --world-size 1 \
   --rank 0 \
