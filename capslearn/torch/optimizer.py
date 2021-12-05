@@ -23,7 +23,8 @@ class _CapsOptimizer(torch.optim.Optimizer):
         self.log_dir = log_dir
         self.param_size = 0
         self.skip_count = 0
-        self.round_factor = 10 ** round_factor
+        self.round_factor = round_factor
+        self._rf = 10 ** self.round_factor
 
         # unchange_rate scheduling
         self.adjust_rate = adjust_rate
@@ -60,8 +61,8 @@ class _CapsOptimizer(torch.optim.Optimizer):
                 #
 
                 if self.round_factor >= 0:
-                    current_params = torch.round(self.params[0]['params'][idx].data * self.round_factor)
-                    previous = torch.round(self.prev_params[0]['params'][idx].data * self.round_factor)
+                    current_params = torch.round(self.params[0]['params'][idx].data * self._rf)
+                    previous = torch.round(self.prev_params[0]['params'][idx].data * self._rf)
                 else:
                     current_params = self.params[0]['params'][idx].data
                     previous = self.prev_params[0]['params'][idx].data
