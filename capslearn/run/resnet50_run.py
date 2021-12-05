@@ -61,7 +61,9 @@ optimizer = opt.CapsOptimizer(optimizer,
                               unchange_rate=args.unchange_rate,
                               lower_bound=args.lower_bound,
                               scheduling_freq=scheduling_freq,
-                              history_length=args.history_length)
+                              history_length=args.history_length,
+                              log_mode=True,
+                              log_dir="/home/with1015/CaPS-Learn/capslearn/run/log")
 
 for epoch in range(epochs):
     print("Epoch: ", epoch)
@@ -79,8 +81,8 @@ for epoch in range(epochs):
 
             iteration.set_postfix(loss=loss.item())
 
-        """
-        print("Validate epoch:", epoch)
+    print("Validate epoch:", epoch)
+    with tqdm(test_loader, unit="iter") as iteration:
         accuracy_cnt = 0
         for idx, data in enumerate(test_loader):
             inputs, labels = data
@@ -92,6 +94,4 @@ for epoch in range(epochs):
             accuracy_cnt += torch.sum(pred == labels.data)
 
         #accuracy = 100 * accuracy_cnt / len(test_loader)
-        print("Accuracy:", accuracy_cnt)
-
         #optimizer.get_validation(accuracy)"""

@@ -46,8 +46,9 @@ class _CapsOptimizer(torch.optim.Optimizer):
 
         if self.steps != 0:
             if self.steps % self.scheduling_freq == 0:
-                bad_valid = self._check_validation()
-                self._schedule_unchange_rate(bad_valid)
+                #bad_valid = self._check_validation()
+                #self._schedule_unchange_rate(bad_valid)
+                pass
 
             for idx in range(self.num_tensors):
                 #
@@ -56,8 +57,8 @@ class _CapsOptimizer(torch.optim.Optimizer):
                 # TODO: implement more concrete and faster way to search tensor.
                 #
 
-                current_params = torch.round(self.params[0]['params'][idx].data * 10000)
-                previous = torch.round(self.prev_params[0]['params'][idx].data * 10000)
+                current_params = torch.round(self.params[0]['params'][idx].data * 100000)
+                previous = torch.round(self.prev_params[0]['params'][idx].data * 100000)
 
                 compare = torch.eq(current_params, previous)
                 result = torch.count_nonzero(compare).item()
