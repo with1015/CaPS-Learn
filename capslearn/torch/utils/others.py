@@ -47,6 +47,8 @@ def argument_parsing():
                         help='Scheduling frequency for unchange rate')
     parser.add_argument('--history-length', default=5, type=int,
                         help='History epoch length for unchange rate scheduling')
+    parser.add_argument('--round-factor', default=4, type=int,
+                        help='Round factor to compare parameters')
     parser.add_argument('--log-mode', dest='log_mode', action='store_true',
                         help='Enable log for CaPS optimizer')
     parser.add_argument('--log-dir', default=None, type=str,
