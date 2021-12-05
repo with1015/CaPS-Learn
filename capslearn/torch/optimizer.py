@@ -9,7 +9,7 @@ class _CapsOptimizer(torch.optim.Optimizer):
                  unchange_rate=99.0, adjust_rate=1.0,
                  lower_bound=5.0, max_bound=50.0,
                  scheduling_freq=1000, history_length=10,
-                 round_factor=-1,
+                 round_factor=-1, random_select=-1,
                  custom_metric=None,
                  log_mode=False, log_dir=None):
 
@@ -27,6 +27,7 @@ class _CapsOptimizer(torch.optim.Optimizer):
         self.skip_count = 0
         self.round_factor = round_factor
         self._rf = 10 ** self.round_factor
+        self.random_select = random_select
 
         # unchange_rate scheduling
         self.adjust_rate = adjust_rate
@@ -64,7 +65,10 @@ class _CapsOptimizer(torch.optim.Optimizer):
                     current_params = self.params[0]['params'][idx].data
                     previous = self.prev_params[0]['params'][idx].data
 
-                percent = self._naive_compare(current_params, previous)
+                if self.random_select != -1:
+                    percent = self._random_compare(current_params, previous)
+                else:
+                    percent = self._naive_compare(current_params, previous)
 
                 if percent >= self.unchange_rate:
                     self.params[0]['params'][idx].requires_grad = False
@@ -97,8 +101,17 @@ class _CapsOptimizer(torch.optim.Optimizer):
         return percent
 
 
-    def _random_compare(self):
-        pass
+    def _random_compare(self, current_params, previous):
+        total_num = torch.numel(current_params)
+        rand_idxs = random.sample(range(total_num), int(total_num * self.random_select))
+        t1 = torch.flatten(current_params)
+        t2 = torch.flatten(previous)
+        result = 0
+        for idx in rand_idxs:
+            if t1[idx] == t2[idx]:
+                result += 1
+        percent = 100 * result / len(rand_idxs)
+        return percent
 
 
     def _weighted_compare(self):
@@ -129,7 +142,7 @@ class _CapsOptimizer(torch.optim.Optimizer):
 
 def CapsOptimizer(optimizer,
                   unchange_rate=90.0, adjust_rate=1.0, lower_bound=5.0, max_bound=50.0,
-                  scheduling_freq=1000, history_length=10,
+                  scheduling_freq=1000, history_length=10, random_select=-1,
                   round_factor=4, custom_metric=None,
                   log_mode=False, log_dir=None):
 
@@ -144,5 +157,6 @@ def CapsOptimizer(optimizer,
                scheduling_freq=scheduling_freq,
                history_length=history_length,
                round_factor=round_factor,
+               random_select=random_select,
                custom_metric=custom_metric,
                log_mode=log_mode, log_dir=log_dir)
