@@ -49,9 +49,8 @@ class _CapsOptimizer(torch.optim.Optimizer):
 
         if self.steps != 0:
             if self.steps % self.scheduling_freq == 0:
-                #bad_valid = self._check_validation()
-                #self._schedule_unchange_rate(bad_valid)
-                pass
+                bad_valid = self._check_validation()
+                self._schedule_unchange_rate(bad_valid)
 
             for idx in range(self.num_tensors):
                 #
@@ -95,7 +94,7 @@ class _CapsOptimizer(torch.optim.Optimizer):
 
 
     def _check_validation(self):
-        return all(x <= y for x, y in zip(self.metric_queue, metric_queue[1:]))
+        return all(x <= y for x, y in zip(self.metric_queue, self.metric_queue[1:]))
 
 
     def _schedule_unchange_rate(self, bad_valid=False):

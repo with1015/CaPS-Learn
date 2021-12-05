@@ -51,6 +51,10 @@ model = model.to(device)
 model = DistributedDataParallel(model, device_ids=[0], find_unused_parameters=True)
 
 
+with open("/home/with1015/CaPS-Learn/capslearn/run/log/layer_name.txt", 'a') as f:
+    for n, _ in model.named_modules():
+        f.write(str(n) + "\n")
+
 criterion = torch.nn.CrossEntropyLoss().cuda()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
@@ -85,4 +89,4 @@ for epoch in range(epochs):
 
             iteration.set_postfix(loss=loss.item(), accuracy=100.*accuracy)
 
-        #optimizer.get_validation(accuracy)
+        optimizer.get_validation(100 * accuracy)
