@@ -57,12 +57,6 @@ class _CapsOptimizer(torch.optim.Optimizer):
                 self._schedule_unchange_rate(bad_valid)
 
             for idx in range(self.num_tensors):
-                #
-                # TODO: determine concrete metric for check parameter change.
-                #       How many we can torelate floating point?
-                # TODO: implement more concrete and faster way to search tensor.
-                #
-
                 if self.round_factor >= 0:
                     current_params = torch.round(self.params[0]['params'][idx].data * self._rf)
                     previous = torch.round(self.prev_params[0]['params'][idx].data * self._rf)
@@ -70,9 +64,7 @@ class _CapsOptimizer(torch.optim.Optimizer):
                     current_params = self.params[0]['params'][idx].data
                     previous = self.prev_params[0]['params'][idx].data
 
-                compare = torch.eq(current_params, previous)
-                result = torch.count_nonzero(compare).item()
-                percent = 100 * result / torch.numel(compare)
+                percent = self._naive_compare(current_params, previous)
 
                 if percent >= self.unchange_rate:
                     self.params[0]['params'][idx].requires_grad = False
@@ -93,8 +85,24 @@ class _CapsOptimizer(torch.optim.Optimizer):
     def get_skip_count(self):
         return self.skip_count
 
+
     def get_validation(self, metric):
         self.metric_queue.append(metric)
+
+
+    def _naive_compare(self, current_params, previous):
+        compare = torch.eq(current_params, previous)
+        result = torch.count_nonzero(compare).item()
+        percent = 100 * result / torch.numel(compare)
+        return percent
+
+
+    def _random_compare(self):
+        pass
+
+
+    def _weighted_compare(self):
+        pass
 
 
     def _check_validation(self):
