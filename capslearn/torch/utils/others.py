@@ -49,6 +49,12 @@ def argument_parsing():
                         help='History epoch length for unchange rate scheduling')
     parser.add_argument('--round-factor', default=4, type=int,
                         help='Round factor to compare parameters')
+    parser.add_argument('--random-select', default=-1, type=float,
+                        help='Enable random selection with ratio instead of naive solution')
+    parser.add_argument('--hbs-init', default=-1, type=int,
+                        help='Define initial steps for history-based search')
+
+    # Generate log
     parser.add_argument('--log-mode', dest='log_mode', action='store_true',
                         help='Enable log for CaPS optimizer')
     parser.add_argument('--log-dir', default=None, type=str,

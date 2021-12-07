@@ -28,7 +28,7 @@ world_size = args.world_size
 
 os.environ['MASTER_ADDR'] = args.master_addr
 os.environ['MASTER_PORT'] = args.master_port
-dist.init_process_group(backend='nccl', rank=rank, world_size=world_size)
+dist.init_process_group(backend='gloo', rank=rank, world_size=world_size)
 
 #normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
 #                                std=[0.229, 0.224, 0.225])
@@ -67,8 +67,9 @@ optimizer = opt.CapsOptimizer(optimizer,
                               scheduling_freq=scheduling_freq,
                               history_length=args.history_length,
                               round_factor=args.round_factor,
-                              log_mode=True,
-                              log_dir="/home/with1015/CaPS-Learn/capslearn/run/log")
+                              random_select=args.random_select,
+                              log_mode=args.log_mode,
+                              log_dir=args.log_dir)
 
 for epoch in range(epochs):
     print("Epoch: ", epoch)

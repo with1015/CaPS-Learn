@@ -19,7 +19,8 @@ python3 ${RUN_DIR}/${APP} \
   --scheduling-freq 10 \
   --history-length 5 \
   --round-factor -1 \
-  --world-size 4 \
+  --random-select 0.001 \
+  --world-size 1 \
   --rank 0 \
   --master-addr $MASTER_ADDR \
   --master-port $MASTER_PORT \

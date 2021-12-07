@@ -35,7 +35,6 @@ model = vgg.VGG16(num_classes=num_classes).to(device=cuda)
 
 criterion = torch.nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
-optimizer = opt.TestOptimizer(optimizer)
 
 for epoch in range(epochs):
     print("Epoch: ", epoch)

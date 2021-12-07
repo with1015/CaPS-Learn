@@ -87,18 +87,4 @@ for epoch in range(epochs):
 
                 iteration.set_postfix(loss=loss.item())
 
-    print("Validate epoch:", epoch)
-    accuracy_cnt = 0
-    for idx, data in test_loader:
-        inputs, labels = data
-        inputs = inputs.cuda(device)
-        labels = labels.cuda(device)
-        outputs = model(inputs)
-
-        if outputs == labels:
-            accuracy_cnt += 1
-
-    accuracy = 100 * accuracy_cnt / len(test_loader)
-    print("Accuracy:", accuracy)
-
-    optimizer.get_validation(accuracy)
+    optimizer.get_validation(loss.item())
