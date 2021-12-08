@@ -2,7 +2,7 @@
 ### 2021 CSE61401 AI framework Project
 Hyunjoon Jeong 20215350, UNIST
 
-## requirement
+## Requirement
 ~~~
 torch == 1.8.0 (recommand)
 torchvision == 0.8.0 (recommand)
