@@ -65,7 +65,6 @@ class _CapsOptimizer(torch.optim.Optimizer):
                 bad_valid = self._check_validation()
                 self._schedule_unchange_rate(bad_valid)
 
-            start = time.time()
             for idx in range(self.num_tensors):
                 if self.round_factor >= 0:
                     current_params = torch.round(self.params[0]['params'][idx].data * self._rf)
@@ -91,7 +90,6 @@ class _CapsOptimizer(torch.optim.Optimizer):
                 if self.log_mode == True:
                     with open(self.log_dir + "/layer" + str(idx) + ".log", "a") as f:
                         f.write(str(percent) + "\n")
-            print(time.time()-start)
 
         self.prev_params = copy.deepcopy(self.params)
         self.steps += 1
