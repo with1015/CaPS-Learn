@@ -43,6 +43,8 @@ def argument_parsing():
                         help='Start unchage rate for training')
     parser.add_argument('--lower-bound', default=0.0, type=float,
                         help='Set the lowest value for unchange rate')
+    parser.add_argument('--max-bound', default=100, type=float,
+                        help='Set the maximum value for unchage rate')
     parser.add_argument('--scheduling-freq', default=10, type=int,
                         help='Scheduling frequency for unchange rate')
     parser.add_argument('--history-length', default=5, type=int,

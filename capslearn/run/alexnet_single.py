@@ -4,7 +4,7 @@ import torch
 import torchvision
 import torchvision.transforms as transforms
 
-import capslearn.models.vgg as vgg
+import capslearn.models.alexnet as alexnet
 import capslearn.torch.optimizer as opt
 
 import capslearn.torch.utils.cifar10_load as ld
@@ -31,10 +31,12 @@ train_loader, test_loader, num_classes = ld.get_loader(batch_size=batch_size, re
 #                                        transforms=transforms)
 
 #num_classes = 1000
-model = vgg.VGG16(num_classes=num_classes).to(device=cuda)
+
+model = alexnet.AlexNet(num_classes=num_classes).to(device=cuda)
 
 criterion = torch.nn.CrossEntropyLoss()
-optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
+optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+optimizer = opt.CapsOptimizer(optimizer, unchange_rate=99.0)
 
 for epoch in range(epochs):
     print("Epoch: ", epoch)
@@ -50,9 +52,24 @@ for epoch in range(epochs):
             optimizer.step()
 
             iteration.set_postfix(loss=loss.item())
-            with open("/home/with1015/capslearn/capslearn/logs/loss.txt", 'a') as f:
-                f.write(str(loss.item()) + "\n")
+            #with open("/home/with1015/capslearn/capslearn/logs/loss.txt", 'a') as f:
+            #    f.write(str(loss.item()) + "\n")
 
 #with open("/home/with1015/capslearn/capslearn/logs/log.txt", 'a') as f:
 #    for percent in optimizer.percent_set:
 #        f.write(str(percent) + "\n")
+
+print("Test accuracy...")
+correct = 0
+total = 0
+
+with tqdm(test_loader, unit="iter") as iteration:
+    with torch.no_grad():
+        for data in test_loader:
+            images, labels = data
+            outputs = model(images)
+            _, predict = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predict == labels).sum().item()
+
+print("Accuracy: %d %%" % (100 * correct / total))

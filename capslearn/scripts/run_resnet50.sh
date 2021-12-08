@@ -20,7 +20,7 @@ python3 ${RUN_DIR}/${APP} \
   --history-length 5 \
   --round-factor -1 \
   --random-select 0.001 \
-  --world-size 1 \
+  --world-size 4 \
   --rank 0 \
   --master-addr $MASTER_ADDR \
   --master-port $MASTER_PORT \

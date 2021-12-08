@@ -8,6 +8,7 @@ import torchvision.transforms as transforms
 import torchvision.models as models
 
 import capslearn.torch.utils.others as utility
+import capslearn.torch.utils.cifar10_load as ld
 
 from tqdm import tqdm
 
@@ -53,30 +54,23 @@ optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 for epoch in range(epochs):
     print("Epoch: ", epoch)
     with tqdm(train_loader, unit="iter") as iteration:
-        for idx, data in enumerate(iteration):
-            inputs, labels = data
-            inputs = inputs.cuda(device, non_blocking=True)
-            labels = labels.cuda(device, non_blocking=True)
-            optimizer.zero_grad()
+        with torch.profiler.profile(
+                schedule=torch.profiler.schedule(wait=10, warmup=10, active=1, repeat=1),
+                on_trace_ready=torch.profiler.tensorboard_trace_handler('/home/with1015/CaPS-Learn/capslearn/scripts/log/baseline'),
+                record_shapes=True,
+                with_stack=True
+                ) as prof:
+            for idx, data in enumerate(iteration):
+                inputs, labels = data
+                inputs = inputs.cuda(device, non_blocking=True)
+                labels = labels.cuda(device, non_blocking=True)
+                optimizer.zero_grad()
 
-            outputs = model(inputs)
-            loss = criterion(outputs, labels)
-            loss.backward()
-            optimizer.step()
+                outputs = model(inputs)
+                loss = criterion(outputs, labels)
+                loss.backward()
+                optimizer.step()
+                prof.step()
 
             iteration.set_postfix(loss=loss.item())
-
-    print("Validate epoch:", epoch)
-    accuracy_cnt = 0
-    for idx, data in test_loader:
-        inputs, labels = data
-        inputs = inputs.cuda(device)
-        labels = labels.cuda(device)
-        outputs = model(inputs)
-
-        if outputs == labels:
-            accuracy_cnt += 1
-
-    accuracy = 100 * accuracy_cnt / len(test_loader)
-    print("Accuracy:", accuracy)
 

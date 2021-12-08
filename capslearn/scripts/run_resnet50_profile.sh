@@ -14,11 +14,12 @@ python3 ${RUN_DIR}/${APP} \
   --batch-size 32 \
   --workers 16 \
   --lr 0.001 \
-  --unchange-rate 10.0 \
+  --unchange-rate 90.0 \
   --lower-bound 0.0 \
-  --max-bound 50.0 \
   --scheduling-freq 10 \
-  --history-length 3 \
+  --history-length 5 \
+  --round-factor -1 \
+  --random-select -1 \
   --world-size 4 \
   --rank 0 \
   --master-addr $MASTER_ADDR \

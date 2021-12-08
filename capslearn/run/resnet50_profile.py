@@ -1,7 +1,6 @@
 import os
 import torch
 import torch.distributed as dist
-import torch.profiler
 
 import torchvision
 import torchvision.transforms as transforms
@@ -29,6 +28,7 @@ world_size = args.world_size
 
 os.environ['MASTER_ADDR'] = args.master_addr
 os.environ['MASTER_PORT'] = args.master_port
+dist.init_process_group(backend='nccl', rank=rank, world_size=world_size)
 
 #normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
 #                                std=[0.229, 0.224, 0.225])
@@ -41,18 +41,22 @@ os.environ['MASTER_PORT'] = args.master_port
 train_loader, test_loader, num_classes = ld.get_loader(batch_size=batch_size,
                                                     data_dir=args.data,
                                                     resize=70,
-                                                    num_workers=args.workers)
+                                                    num_workers=args.workers,
+                                                    sampler=True)
 
 
 # Define model with CaPS-DDP
 model = models.resnet50(num_classes=num_classes)
 model = model.to(device)
-dist.init_process_group(backend='gloo', rank=rank, world_size=world_size)
-model = DistributedDataParallel(model, device_ids=[0])
+model = DistributedDataParallel(model, device_ids=[0], find_unused_parameters=True)
 
+
+with open("/home/with1015/CaPS-Learn/capslearn/run/log/layer_name.txt", 'a') as f:
+    for n, _ in model.named_modules():
+        f.write(str(n) + "\n")
 
 criterion = torch.nn.CrossEntropyLoss().cuda()
-optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
+optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
 
 # Apply CapsOptimizer
@@ -61,15 +65,18 @@ optimizer = opt.CapsOptimizer(optimizer,
                               unchange_rate=args.unchange_rate,
                               lower_bound=args.lower_bound,
                               scheduling_freq=scheduling_freq,
-                              history_length=args.history_length)
-
+                              history_length=args.history_length,
+                              round_factor=args.round_factor,
+                              random_select=args.random_select,
+                              log_mode=args.log_mode,
+                              log_dir=args.log_dir)
 
 for epoch in range(epochs):
     print("Epoch: ", epoch)
     with tqdm(train_loader, unit="iter") as iteration:
         with torch.profiler.profile(
-                schedule=torch.profiler.schedule(wait=1, warmup=1, active=1, repeat=1),
-                on_trace_ready=torch.profiler.tensorboard_trace_handler('./log/resnet50'),
+                schedule=torch.profiler.schedule(wait=10, warmup=10, active=1, repeat=1),
+                on_trace_ready=torch.profiler.tensorboard_trace_handler('./log'),
                 record_shapes=True,
                 with_stack=True
                 ) as prof:
@@ -80,11 +87,14 @@ for epoch in range(epochs):
                 optimizer.zero_grad()
 
                 outputs = model(inputs)
+                predictions = outputs.argmax(dim=1, keepdim=True).squeeze()
                 loss = criterion(outputs, labels)
+                correctness = (predictions == labels).sum().item()
+                accuracy = correctness / batch_size
                 loss.backward()
                 optimizer.step()
                 prof.step()
 
-                iteration.set_postfix(loss=loss.item())
+                iteration.set_postfix(loss=loss.item(), accuracy=100.*accuracy)
 
-    optimizer.get_validation(loss.item())
+            optimizer.get_validation(loss.item())
