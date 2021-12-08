@@ -1,11 +1,25 @@
 # CaPS-Learn: Convergence-aware Parameter Skipped Learning System in Distributed Environment
-2021 CSE61401 AI framework Project
+### 2021 CSE61401 AI framework Project
+Hyunjoon Jeong 20215350, UNIST
 
 ## requirement
 ~~~
 torch == 1.8.0 (recommand)
 torchvision == 0.8.0 (recommand)
 tqdm == 4.60.0 (recommand)
+~~~
+
+## How to Use
+When you train your model, you just wrap your optimizer by CapsOptimizer
+~~~
+import torch
+import capslearn.torch.optimizer as opt
+from capslearn.torch.distributed import DistributedDataParallel
+
+...
+
+optimizer = torch.optim.Adam(model.paramters(), lr=learning_rate)
+optimizer = opt.CapsOptimizer(optimizer, **CapsParameter)
 ~~~
 
 ## Input Parameter List
