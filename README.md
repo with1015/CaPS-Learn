@@ -10,7 +10,9 @@ tqdm == 4.60.0 (recommand)
 ~~~
 
 ## How to Use
-When you train your model, you just wrap your optimizer by CapsOptimizer
+When you train your model, you just wrap your optimizer by CapsOptimizer.
+Refer below usage example and see capslearn/run/resnet50_run.py.
+You can test CapsOptimizer using script files in capslearn/scripts.
 ~~~
 import torch
 import capslearn.torch.optimizer as opt
