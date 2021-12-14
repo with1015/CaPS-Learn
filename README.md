@@ -24,6 +24,27 @@ optimizer = torch.optim.Adam(model.paramters(), lr=learning_rate)
 optimizer = opt.CapsOptimizer(optimizer, **CapsParameter)
 ~~~
 
+## Run example
+See capslearn/script examples
+~~~
+python3 resnet50_run.py \
+  --epoch 100 \
+  --batch-size 32 \
+  --workers 16 \
+  --lr 0.001 \
+  --unchange-rate 90.0 \
+  --lower-bound 0.0 \
+  --scheduling-freq 10 \
+  --history-length 5 \
+  --round-factor -1 \
+  --random-select 0.001 \
+  --world-size 4 \
+  --rank 0 \
+  --master-addr $MASTER_ADDR \
+  --master-port $MASTER_PORT \
+  $DATA_DIR
+~~~
+
 ## Input Parameter List
 ~~~
 # Training parameter
