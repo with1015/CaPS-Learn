@@ -25,7 +25,8 @@ optimizer = opt.CapsOptimizer(optimizer, **CapsParameter)
 ~~~
 
 ## Run example
-See capslearn/script examples
+See capslearn/scripts examples. \
+https://github.com/with1015/CaPS-Learn/tree/main/capslearn/scripts
 ~~~
 python3 resnet50_run.py \
   --epoch 100 \
